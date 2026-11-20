@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kantele Tuner — Finnish Concert &amp; Kotikantele Precision Tuner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kanteleviritin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -87,10 +87,14 @@
       animation: stringPluck 0.35s ease-out;
     }
 
-    /* Custom subtle scrollbar for string bed */
+    /* Custom subtle scrollbar for internal string bed */
+    .kantele-scroll {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
     .kantele-scroll::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
     }
     .kantele-scroll::-webkit-scrollbar-track {
       background: rgba(232, 222, 201, 0.5);
@@ -111,14 +115,12 @@
 </head>
 <body class="bg-birch-100 text-ink-900 font-sans antialiased min-h-screen selection:bg-brass-400/30">
 
-  <!-- TOP HEADER -->
-  <header class="bg-birch-50/95 backdrop-blur border-b border-birch-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <!-- Brand / Title -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-ink-900 text-birch-50 flex items-center justify-center shadow-sm shrink-0">
-          <!-- Minimalist Kantele Silhouette SVG -->
-          <svg class="w-6 h-6" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- COMPACT NON-STICKY HEADER -->
+  <header class="bg-birch-50 border-b border-birch-200">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-ink-900 text-birch-50 flex items-center justify-center shadow-sm shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 21 L24 21 L21 7 L4 12 Z" fill="rgba(197,155,72,0.22)" />
             <line x1="6" y1="18.5" x2="22.5" y2="18.5" />
             <line x1="6" y1="15.8" x2="21.8" y2="15.8" />
@@ -127,448 +129,413 @@
           </svg>
         </div>
         <div>
-          <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink-900 leading-none">
+          <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-ink-900 leading-none">
             Kantele Tuner
           </h1>
-          <p class="text-xs text-ink-500 mt-0.5">Finnish Concert &amp; Kotikantele Precision Tuner</p>
+          <p class="text-[11px] sm:text-xs text-ink-500 mt-0.5">Finnish Concert &amp; Kotikantele Precision Tuner</p>
         </div>
       </div>
 
-      <!-- Primary Microphone & Reference Tone Quick Controls -->
-      <div class="flex items-center gap-2 sm:gap-3">
-        <span id="mic-status-badge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-birch-100 text-ink-500 border border-birch-200">
-          <span id="mic-status-dot" class="w-2 h-2 rounded-full bg-ink-400"></span>
-          <span id="mic-status-text">Mic Off</span>
-        </span>
-        <button
-          id="mic-toggle-btn"
-          type="button"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ink-900 hover:bg-ink-700 text-birch-50 text-sm font-semibold shadow-sm transition active:scale-[0.98]"
-        >
-          <svg id="mic-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="22"/>
-          </svg>
-          <span id="mic-btn-label">Start Microphone</span>
-        </button>
-      </div>
+      <span id="mic-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-birch-100 text-ink-500 border border-birch-200 shrink-0">
+        <span id="mic-status-dot" class="w-2 h-2 rounded-full bg-ink-400"></span>
+        <span id="mic-status-text">Mic Off</span>
+      </span>
     </div>
   </header>
 
-  <!-- INLINE ERROR / STATUS BANNER (replaces alert()) -->
-  <div id="alert-banner" class="hidden max-w-7xl mx-auto px-4 sm:px-6 pt-4">
-    <div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 flex items-start justify-between gap-3 text-sm text-nordic-coral">
-      <div class="flex items-start gap-2.5">
-        <svg class="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <!-- INLINE ERROR / STATUS BANNER -->
+  <div id="alert-banner" class="hidden max-w-7xl mx-auto px-3 sm:px-6 pt-3">
+    <div class="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 flex items-start justify-between gap-3 text-xs sm:text-sm text-nordic-coral">
+      <div class="flex items-start gap-2">
+        <svg class="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p id="alert-banner-msg"></p>
       </div>
-      <button id="alert-banner-close" type="button" class="text-nordic-coral/70 hover:text-nordic-coral font-bold px-1">&times;</button>
+      <button id="alert-banner-close" type="button" class="text-nordic-coral/70 hover:text-nordic-coral font-bold px-2 py-0.5">&times;</button>
     </div>
   </div>
 
   <!-- MAIN WORKSPACE -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
 
-    <!-- LEFT COLUMN: Tuning Gauge, Mic Controls, Musician Settings, Tuning Guide (5 cols on lg) -->
-    <section class="lg:col-span-5 flex flex-col gap-5">
+    <!-- STICKY TUNER COLUMN -->
+    <section class="lg:col-span-5 sticky top-0 z-30 lg:top-4">
+      <div class="bg-birch-50/95 backdrop-blur-md rounded-2xl border border-birch-200 shadow-md p-3 sm:p-5 flex flex-col items-center">
 
-      <!-- 1. PRECISION TUNING GAUGE CARD -->
-      <div class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm p-4 sm:p-5 flex flex-col items-center">
-        <!-- Mode Toggle & Active String Badge -->
-        <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div class="inline-flex rounded-xl bg-birch-100 p-1 border border-birch-200">
-            <button id="mode-auto-btn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
-              Auto-Match
-            </button>
-            <button id="mode-manual-btn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
-              Manual Lock
-            </button>
-          </div>
-          <div class="text-xs font-medium text-ink-500 flex items-center gap-1.5">
-            <span>String</span>
-            <span id="active-string-num" class="font-mono font-bold text-ink-900 bg-birch-100 border border-birch-200 px-2 py-0.5 rounded-md">#1</span>
+        <!-- Top Controls Row: Mic Button + Mode Toggle + Active String -->
+        <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-2 sm:mb-3">
+          <button
+            id="mic-toggle-btn"
+            type="button"
+            class="inline-flex items-center justify-center gap-1.5 px-3.5 min-h-[40px] rounded-xl bg-ink-900 hover:bg-ink-700 text-birch-50 text-xs sm:text-sm font-semibold shadow-sm transition active:scale-[0.98]"
+          >
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+            <span id="mic-btn-label">Start Mic</span>
+          </button>
+
+          <div class="flex items-center gap-1.5">
+            <div class="inline-flex rounded-xl bg-birch-100 p-0.5 border border-birch-200">
+              <button id="mode-auto-btn" type="button" class="px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
+                Auto
+              </button>
+              <button id="mode-manual-btn" type="button" class="px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
+                Lock
+              </button>
+            </div>
+            <span id="active-string-num" class="font-mono text-xs font-bold text-ink-900 bg-birch-100 border border-birch-200 px-2 py-1.5 rounded-lg">#1</span>
           </div>
         </div>
 
-        <!-- Semicircular SVG Gauge (-50c to +50c) -->
-        <div class="w-full max-w-[330px] relative select-none">
-          <svg viewBox="0 0 300 175" class="w-full h-auto overflow-visible" aria-label="Pitch deviation gauge">
+        <!-- Compact Semicircular SVG Gauge (-50c to +50c) -->
+        <div class="w-full max-w-[225px] sm:max-w-[290px] lg:max-w-[310px] relative select-none">
+          <svg viewBox="0 0 300 170" class="w-full h-auto overflow-visible" aria-label="Pitch deviation gauge">
             <!-- Background Arc -->
-            <path d="M 30 155 A 120 120 0 0 1 270 155" fill="none" stroke="#E8DEC9" stroke-width="14" stroke-linecap="round" />
-            <!-- Flat Amber Zone (-50 to -10) -->
-            <path d="M 30 155 A 120 120 0 0 1 113 40.8" fill="none" stroke="#E7C288" stroke-width="14" stroke-linecap="round" opacity="0.65" />
-            <!-- Sharp Coral Zone (+10 to +50) -->
-            <path d="M 187 40.8 A 120 120 0 0 1 270 155" fill="none" stroke="#E2A49C" stroke-width="14" stroke-linecap="round" opacity="0.65" />
-            <!-- Sweet Spot Green Zone (-3c to +3c, approx +/- 5.4 deg around top) -->
-            <path d="M 138.7 35.5 A 120 120 0 0 1 161.3 35.5" fill="none" stroke="#2A7B50" stroke-width="16" stroke-linecap="butt" />
+            <path d="M 30 152 A 120 120 0 0 1 270 152" fill="none" stroke="#E8DEC9" stroke-width="14" stroke-linecap="round" />
+            <!-- Flat Amber Zone -->
+            <path d="M 30 152 A 120 120 0 0 1 113 37.8" fill="none" stroke="#E7C288" stroke-width="14" stroke-linecap="round" opacity="0.65" />
+            <!-- Sharp Coral Zone -->
+            <path d="M 187 37.8 A 120 120 0 0 1 270 152" fill="none" stroke="#E2A49C" stroke-width="14" stroke-linecap="round" opacity="0.65" />
+            <!-- Sweet Spot Green Zone (-3c to +3c) -->
+            <path d="M 138.7 32.5 A 120 120 0 0 1 161.3 32.5" fill="none" stroke="#2A7B50" stroke-width="16" stroke-linecap="butt" />
 
             <!-- Tick Marks & Labels -->
-            <g id="gauge-ticks" class="font-mono text-[10px]" fill="#6B6257">
-              <line x1="30" y1="155" x2="43" y2="155" stroke="#8A8175" stroke-width="1.5" />
-              <text x="16" y="158" text-anchor="middle">-50</text>
-
-              <line x1="65.1" y1="70.1" x2="74.3" y2="79.3" stroke="#8A8175" stroke-width="1.5" />
-              <text x="53" y="64" text-anchor="middle">-25</text>
-
-              <line x1="150" y1="24" x2="150" y2="44" stroke="#2A7B50" stroke-width="2" />
-              <text x="150" y="16" text-anchor="middle" fill="#2A7B50" font-weight="700">0¢</text>
-
-              <line x1="234.9" y1="70.1" x2="225.7" y2="79.3" stroke="#8A8175" stroke-width="1.5" />
-              <text x="247" y="64" text-anchor="middle">+25</text>
-
-              <line x1="270" y1="155" x2="257" y2="155" stroke="#8A8175" stroke-width="1.5" />
-              <text x="284" y="158" text-anchor="middle">+50</text>
+            <g class="font-mono text-[10px]" fill="#6B6257">
+              <line x1="30" y1="152" x2="43" y2="152" stroke="#8A8175" stroke-width="1.5" />
+              <text x="16" y="155" text-anchor="middle">-50</text>
+              <line x1="65.1" y1="67.1" x2="74.3" y2="76.3" stroke="#8A8175" stroke-width="1.5" />
+              <text x="53" y="61" text-anchor="middle">-25</text>
+              <line x1="150" y1="21" x2="150" y2="41" stroke="#2A7B50" stroke-width="2" />
+              <text x="150" y="13" text-anchor="middle" fill="#2A7B50" font-weight="700">0¢</text>
+              <line x1="234.9" y1="67.1" x2="225.7" y2="76.3" stroke="#8A8175" stroke-width="1.5" />
+              <text x="247" y="61" text-anchor="middle">+25</text>
+              <line x1="270" y1="152" x2="257" y2="152" stroke="#8A8175" stroke-width="1.5" />
+              <text x="284" y="155" text-anchor="middle">+50</text>
             </g>
 
-            <!-- Animated Needle Group (rotates around 150, 155) -->
-            <g id="gauge-needle" transform="rotate(0 150 155)" style="transition: transform 80ms linear;">
-              <line id="gauge-needle-line" x1="150" y1="155" x2="150" y2="43" stroke="#1F1B16" stroke-width="3.2" stroke-linecap="round" />
-              <circle id="gauge-needle-tip" cx="150" cy="43" r="4" fill="#1F1B16" />
+            <!-- Animated Needle -->
+            <g id="gauge-needle" transform="rotate(0 150 152)" style="transition: transform 80ms linear;">
+              <line id="gauge-needle-line" x1="150" y1="152" x2="150" y2="40" stroke="#1F1B16" stroke-width="3.2" stroke-linecap="round" />
+              <circle id="gauge-needle-tip" cx="150" cy="40" r="4" fill="#1F1B16" />
             </g>
 
             <!-- Pivot Cap -->
-            <circle cx="150" cy="155" r="8.5" fill="#1F1B16" />
-            <circle cx="150" cy="155" r="3.5" fill="#FDFBF7" />
+            <circle cx="150" cy="152" r="8" fill="#1F1B16" />
+            <circle cx="150" cy="152" r="3" fill="#FDFBF7" />
           </svg>
         </div>
 
-        <!-- Note & Frequency Readout -->
+        <!-- Compact Note, Hz & Cents Readout -->
         <div class="w-full -mt-2 flex flex-col items-center text-center">
-          <div class="flex items-baseline justify-center gap-4">
-            <div class="flex flex-col items-center min-w-[90px]">
-              <span class="text-[11px] uppercase tracking-wider text-ink-400 font-semibold">Target</span>
-              <span id="gauge-target-note" class="font-serif text-4xl sm:text-5xl font-bold text-ink-900 leading-tight">H₁</span>
-              <span id="gauge-target-hz" class="font-mono text-xs text-ink-500 tabular-nums mt-0.5">61.74 Hz</span>
+          <div class="w-full grid grid-cols-3 items-center gap-1">
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">Target</span>
+              <span id="gauge-target-note" class="font-serif text-3xl sm:text-4xl font-bold text-ink-900 leading-none">H₁</span>
+              <span id="gauge-target-hz" class="font-mono text-[11px] text-ink-500 tabular-nums mt-0.5">61.74 Hz</span>
             </div>
 
-            <span class="text-birch-300 text-3xl font-light select-none">/</span>
-
-            <div class="flex flex-col items-center min-w-[90px]">
-              <span class="text-[11px] uppercase tracking-wider text-ink-400 font-semibold">Detected</span>
-              <span id="gauge-detected-note" class="font-serif text-4xl sm:text-5xl font-bold text-ink-400 leading-tight">—</span>
-              <span id="gauge-detected-hz" class="font-mono text-xs text-ink-500 tabular-nums mt-0.5">— Hz</span>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">Cents</span>
+              <span id="gauge-cents-readout" class="font-mono text-lg sm:text-xl font-bold tabular-nums text-ink-400 leading-tight">— ¢</span>
             </div>
-          </div>
 
-          <!-- Cents Readout -->
-          <div class="mt-2 font-mono text-lg font-bold tabular-nums text-ink-700" id="gauge-cents-readout">
-            — ¢
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">Detected</span>
+              <span id="gauge-detected-note" class="font-serif text-3xl sm:text-4xl font-bold text-ink-400 leading-none">—</span>
+              <span id="gauge-detected-hz" class="font-mono text-[11px] text-ink-500 tabular-nums mt-0.5">— Hz</span>
+            </div>
           </div>
 
           <!-- Directional Guidance Pill -->
-          <div id="tuning-status-pill" class="mt-2.5 w-full max-w-xs px-4 py-2 rounded-xl text-sm font-semibold transition-all border bg-birch-100 text-ink-500 border-birch-200">
-            Pluck a string or press Start Mic
+          <div id="tuning-status-pill" class="mt-2 w-full px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border bg-birch-100 text-ink-500 border-birch-200">
+            Pluck a string or tap Start Mic
           </div>
 
-          <!-- 1.2s Auto-Tuned Hold Progress Bar -->
-          <div class="w-full max-w-xs mt-2.5">
-            <div class="h-1.5 w-full bg-birch-200 rounded-full overflow-hidden">
+          <!-- 1.2s Hold Progress + Compact Live Input Level Meter -->
+          <div class="w-full mt-2 flex flex-col gap-1.5">
+            <div class="h-1.5 w-full bg-birch-200 rounded-full overflow-hidden" title="1.2s in-tune hold progress">
               <div id="hold-progress-bar" class="h-full bg-nordic-green transition-all duration-75 rounded-full" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-semibold uppercase tracking-wide text-ink-400 shrink-0">Input</span>
+              <div class="relative h-2 flex-1 bg-birch-200 rounded-full overflow-hidden">
+                <div id="volume-meter-fill" class="h-full bg-brass-500 transition-all duration-75 rounded-full" style="width: 0%"></div>
+                <div id="volume-gate-marker" class="absolute top-0 bottom-0 w-0.5 bg-ink-900" style="left: 20%"></div>
+              </div>
+              <span id="noise-gate-val" class="font-mono text-[10px] text-ink-500 tabular-nums shrink-0">0.012</span>
             </div>
           </div>
         </div>
 
-        <!-- Reference Tone & Per-String Override Controls -->
-        <div class="w-full mt-4 pt-4 border-t border-birch-200 flex flex-col gap-3">
-          <div class="grid grid-cols-2 gap-2">
+        <!-- Quick Reference Tone & Selected String Actions -->
+        <div class="w-full mt-2.5 pt-2.5 border-t border-birch-200/80 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5">
             <button
               id="play-tone-btn"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-birch-100 hover:bg-birch-200 text-ink-900 border border-birch-200 text-xs sm:text-sm font-semibold transition active:scale-[0.98]"
+              class="inline-flex items-center justify-center gap-1.5 px-3 min-h-[40px] rounded-xl bg-birch-100 hover:bg-birch-200 text-ink-900 border border-birch-200 text-xs font-semibold transition active:scale-[0.98]"
             >
-              <svg class="w-4 h-4 text-brass-600" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-              Play Tone
+              <svg class="w-3.5 h-3.5 text-brass-600" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              Tone
             </button>
             <button
               id="loop-tone-btn"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-birch-100 hover:bg-birch-200 text-ink-900 border border-birch-200 text-xs sm:text-sm font-semibold transition active:scale-[0.98]"
+              class="inline-flex items-center justify-center gap-1.5 px-3 min-h-[40px] rounded-xl bg-birch-100 hover:bg-birch-200 text-ink-900 border border-birch-200 text-xs font-semibold transition active:scale-[0.98]"
             >
-              <svg class="w-4 h-4 text-brass-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-3.5 h-3.5 text-brass-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>
               </svg>
-              <span id="loop-tone-label">Loop Tone: Off</span>
+              <span id="loop-tone-label">Loop</span>
             </button>
           </div>
 
-          <!-- Per-String Accidental Override & Tuned Toggle -->
-          <div class="flex flex-wrap items-center justify-between gap-2 bg-birch-100/70 rounded-xl px-3 py-2 border border-birch-200">
-            <span class="text-xs font-semibold text-ink-700">Selected String Override:</span>
-            <div class="flex items-center gap-1.5">
-              <div class="inline-flex rounded-lg bg-birch-50 p-0.5 border border-birch-200">
-                <button id="str-acc-flat" type="button" class="px-2.5 py-1 rounded-md text-xs font-bold transition text-ink-500 hover:text-ink-900" title="Flat">♭</button>
-                <button id="str-acc-nat" type="button" class="px-2.5 py-1 rounded-md text-xs font-bold transition bg-ink-900 text-birch-50" title="Natural">♮</button>
-                <button id="str-acc-sharp" type="button" class="px-2.5 py-1 rounded-md text-xs font-bold transition text-ink-500 hover:text-ink-900" title="Sharp">♯</button>
-              </div>
-              <button
-                id="toggle-tuned-btn"
-                type="button"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-birch-200 bg-birch-50 hover:bg-birch-200 text-ink-700 transition"
-                title="Manually mark or unmark this string as tuned"
-              >
-                ✓ Tuned
-              </button>
-            </div>
-          </div>
-
-          <!-- Input Volume Meter & RMS Noise Gate -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-semibold text-ink-700">Input Level &amp; Noise Gate</span>
-              <span id="noise-gate-val" class="font-mono text-ink-500 tabular-nums">Gate: 0.012</span>
-            </div>
-            <!-- Live Volume Bar with Gate Threshold Marker -->
-            <div class="relative h-2.5 w-full bg-birch-200 rounded-full overflow-hidden">
-              <div id="volume-meter-fill" class="h-full bg-brass-500 transition-all duration-75 rounded-full" style="width: 0%"></div>
-              <div id="volume-gate-marker" class="absolute top-0 bottom-0 w-0.5 bg-ink-900" style="left: 20%"></div>
-            </div>
-            <input
-              id="noise-gate-slider"
-              type="range"
-              min="0.002"
-              max="0.060"
-              step="0.001"
-              value="0.012"
-              class="w-full accent-brass-500 cursor-pointer h-1.5"
-              aria-label="Microphone noise gate threshold"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. MUSICIAN SETTINGS CARD -->
-      <div class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
-        <h2 class="font-serif text-lg font-bold text-ink-900 leading-none">Musician Settings</h2>
-
-        <!-- A4 Calibration -->
-        <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label for="a4-slider" class="text-xs font-semibold text-ink-700">A4 Calibration (a¹)</label>
-            <div class="flex items-center gap-1.5">
-              <button id="a4-dec-btn" type="button" class="w-6 h-6 rounded-md bg-birch-100 hover:bg-birch-200 border border-birch-200 text-xs font-bold text-ink-900">−</button>
-              <span id="a4-value-label" class="font-mono text-xs font-bold text-ink-900 tabular-nums min-w-[54px] text-center">440 Hz</span>
-              <button id="a4-inc-btn" type="button" class="w-6 h-6 rounded-md bg-birch-100 hover:bg-birch-200 border border-birch-200 text-xs font-bold text-ink-900">+</button>
-            </div>
-          </div>
-          <input
-            id="a4-slider"
-            type="range"
-            min="432"
-            max="445"
-            step="1"
-            value="440"
-            class="w-full accent-brass-500 cursor-pointer"
-          />
-          <div class="flex justify-between text-[10px] font-mono text-ink-400 mt-0.5">
-            <span>432 Hz</span>
-            <span>440 Hz</span>
-            <span>442 Hz</span>
-            <span>445 Hz</span>
-          </div>
-        </div>
-
-        <!-- Note Naming & Octave Style -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <span class="block text-xs font-semibold text-ink-700 mb-1.5">Note Naming</span>
-            <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
-              <button id="notation-fi-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
-                Finnish (H/B)
-              </button>
-              <button id="notation-intl-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
-                Intl (B/B♭)
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <span class="block text-xs font-semibold text-ink-700 mb-1.5">Octave Style</span>
-            <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
-              <button id="octave-helm-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
-                Helmholtz (H₁)
-              </button>
-              <button id="octave-sci-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
-                Scientific (B1)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- String Color Scheme Toggle -->
-        <div>
-          <span class="block text-xs font-semibold text-ink-700 mb-1.5">String Color Scheme</span>
-          <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
-            <button id="color-koistinen-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
-              Finnish / Koistinen (Red C, Black G)
-            </button>
-            <button id="color-classic-btn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
-              Classic / Harp (Red C, Blue F)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. COLLAPSIBLE TUNING GUIDE / VIRITYSOHJE -->
-      <details class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm group">
-        <summary class="px-4 sm:px-5 py-3.5 cursor-pointer list-none flex items-center justify-between text-sm font-serif font-bold text-ink-900 select-none">
-          <span class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-brass-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
-            </svg>
-            Tuning Guide / Viritysohje
-          </span>
-          <svg class="w-4 h-4 text-ink-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-        </summary>
-        <div class="px-4 sm:px-5 pb-4 text-xs sm:text-sm text-ink-700 space-y-2.5 border-t border-birch-200/70 pt-3 leading-relaxed">
-          <p><strong class="text-ink-900">1. Base tuning at ♮ (Perusviritys C-duurissa):</strong> Always set all 7 concert kantele levers (<em>koneisto</em>) to neutral (♮) before turning tuning pins. Click <strong>Neutral / C-duuri (Kaikki ♮)</strong> to match the tuner to neutral.</p>
-          <p><strong class="text-ink-900">2. New wound bass strings (H₁–H):</strong> Freshly replaced bass strings stretch noticeably at first. Re-check the lowest octave (H₁ through H) frequently during the first few weeks and make a second pass from bass to treble after the soundboard settles.</p>
-          <p><strong class="text-ink-900">3. Soft-strung vintage kanteles (Pehmeäkielinen soitin):</strong> Instruments such as 1960s Oiva Heikkilä concert kanteles have gentler string tension. Turn the tuning key in small 5°–10° increments, and always approach the target pitch from slightly flat (loosen slightly if sharp, then tighten clockwise / <em>kiristä</em>).</p>
-          <p><strong class="text-ink-900">4. Checking concert levers (Koneiston tarkistus):</strong> Flip levers smoothly and avoid unnecessary extreme positions (such as H→His) when not required by the piece.</p>
-        </div>
-      </details>
-
-    </section>
-
-    <!-- RIGHT COLUMN: Presets, Concert Mechanism (Koneisto), Progress, & Interactive Spruce String Bed (7 cols on lg) -->
-    <section class="lg:col-span-7 flex flex-col gap-5">
-
-      <!-- 1. INSTRUMENT LAYOUT, SCALE & 7-LEVER MECHANISM BAR -->
-      <div class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Preset Selector -->
-          <div>
-            <label for="preset-select" class="block text-xs font-semibold text-ink-700 mb-1.5">Instrument Layout</label>
-            <select
-              id="preset-select"
-              class="w-full rounded-xl bg-birch-100 border border-birch-200 px-3 py-2.5 text-sm font-medium text-ink-900 focus:outline-none focus:ring-2 focus:ring-brass-400"
-            >
-              <option value="heikkila_36">Oiva Heikkilä 36-kielinen konserttikantele (H₁–h³ / B1–B6)</option>
-              <option value="36">36-String Kotikantele (C2–C7 / C–c⁴)</option>
-              <option value="37_A1">37-String Kotikantele (A1–B6 / A₁–h³)</option>
-              <option value="37_C2">37-String Kotikantele (C2–D7 / C–d⁴)</option>
-              <option value="37_G1">37-String Kotikantele (G1–A6 / G₁–a³)</option>
-              <option value="32">32-String Kotikantele (G2–C7 / G–c⁴)</option>
-              <option value="39">39-String Concert Kantele (G1–C7 / G₁–c⁴)</option>
-              <option value="15">15-String Kantele (D4–D6 / d¹–d³)</option>
-              <option value="5">5-String Kantele (D4–A4 / d¹–a¹)</option>
-              <option value="custom">Custom Range (5–40 Strings)…</option>
-            </select>
-          </div>
-
-          <!-- Key / Scale Quick-Setter -->
-          <div>
-            <label for="key-select" class="block text-xs font-semibold text-ink-700 mb-1.5">Key / Scale Quick-Setter</label>
-            <select
-              id="key-select"
-              class="w-full rounded-xl bg-birch-100 border border-birch-200 px-3 py-2.5 text-sm font-medium text-ink-900 focus:outline-none focus:ring-2 focus:ring-brass-400"
-            >
-              <option value="C_MAJ">C Major / A Minor (All ♮)</option>
-              <option value="G_MAJ">G Major / E Minor (F♯ / Fis)</option>
-              <option value="D_MAJ">D Major / B Minor (F♯, C♯)</option>
-              <option value="A_MAJ">A Major / F♯ Minor (F♯, C♯, G♯)</option>
-              <option value="E_MAJ">E Major / C♯ Minor (F♯, C♯, G♯, D♯)</option>
-              <option value="F_MAJ">F Major / D Minor (B♭ / B)</option>
-              <option value="BB_MAJ">B♭ Major / G Minor (B♭, E♭)</option>
-              <option value="EB_MAJ">E♭ Major / C Minor (B♭, E♭, A♭)</option>
-              <option value="A_HARM_MIN">A Harmonic Minor (G♯ / Gis)</option>
-              <option value="D_HARM_MIN">D Harmonic Minor (B♭, C♯)</option>
-              <option value="E_HARM_MIN">E Harmonic Minor (F♯, D♯)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Custom Range Configurator (shown when Custom preset is selected) -->
-        <div id="custom-range-panel" class="hidden rounded-xl bg-birch-100/80 border border-birch-200 p-3 flex flex-col gap-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs font-semibold text-ink-900">Custom Kantele Range</span>
-            <span id="custom-range-summary" class="font-mono text-xs font-semibold text-brass-600 bg-birch-50 px-2.5 py-0.5 rounded-md border border-birch-200">
-              37 strings · A₁–h³
-            </span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div class="flex items-center justify-between text-xs mb-1">
-                <label for="custom-count-slider" class="font-medium text-ink-700">String Count</label>
-                <span id="custom-count-val" class="font-mono font-bold text-ink-900">37</span>
-              </div>
-              <input id="custom-count-slider" type="range" min="5" max="40" step="1" value="37" class="w-full accent-brass-500 cursor-pointer" />
-            </div>
-            <div>
-              <label for="custom-start-select" class="block text-xs font-medium text-ink-700 mb-1">Lowest Diatonic String (E1–D4)</label>
-              <select id="custom-start-select" class="w-full rounded-lg bg-birch-50 border border-birch-200 px-2.5 py-1.5 text-xs font-medium text-ink-900"></select>
-            </div>
-          </div>
-        </div>
-
-        <!-- 7-Lever Concert Mechanism (Koneisto) -->
-        <div id="mechanism-panel" class="rounded-xl bg-birch-100/80 border border-birch-200 p-3 flex flex-col gap-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span class="text-xs font-semibold text-ink-900">7-Lever Concert Mechanism (Koneisto)</span>
-              <span class="hidden sm:inline text-[11px] text-ink-500 ml-1.5">Shifts all octaves of each pitch class</span>
+          <div class="flex items-center gap-1.5">
+            <div class="inline-flex rounded-xl bg-birch-100 p-0.5 border border-birch-200">
+              <button id="str-acc-flat" type="button" class="w-8 min-h-[36px] rounded-lg text-xs font-bold transition text-ink-500 hover:text-ink-900" title="Flat">♭</button>
+              <button id="str-acc-nat" type="button" class="w-8 min-h-[36px] rounded-lg text-xs font-bold transition bg-ink-900 text-birch-50" title="Natural">♮</button>
+              <button id="str-acc-sharp" type="button" class="w-8 min-h-[36px] rounded-lg text-xs font-bold transition text-ink-500 hover:text-ink-900" title="Sharp">♯</button>
             </div>
             <button
-              id="mechanism-neutral-btn"
+              id="toggle-tuned-btn"
               type="button"
-              class="px-2.5 py-1 rounded-lg bg-birch-50 hover:bg-birch-200 text-ink-900 border border-birch-300 text-[11px] font-semibold transition active:scale-95"
+              class="px-2.5 min-h-[40px] rounded-xl text-xs font-semibold border border-birch-200 bg-birch-100 hover:bg-birch-200 text-ink-700 transition"
+              title="Mark or unmark this string as tuned"
             >
-              Neutral / C-duuri (Kaikki ♮)
+              ✓
             </button>
           </div>
-          <div id="mechanism-levers-grid" class="grid grid-cols-7 gap-1.5">
-            <!-- 7 pitch-class levers dynamically rendered -->
-          </div>
-        </div>
-
-        <!-- Progress Counter & Reset Tuned -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-birch-200/80">
-          <div class="flex items-center gap-3 flex-1 min-w-[200px]">
-            <div class="text-xs font-semibold text-ink-700 whitespace-nowrap">
-              Progress: <span id="tuned-progress-text" class="font-mono font-bold text-nordic-green">0 / 36 tuned</span>
-            </div>
-            <div class="h-2 flex-1 bg-birch-200 rounded-full overflow-hidden max-w-[220px]">
-              <div id="tuned-progress-bar" class="h-full bg-nordic-green transition-all duration-300 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-          <button
-            id="reset-tuned-btn"
-            type="button"
-            class="px-3 py-1.5 rounded-lg bg-birch-100 hover:bg-birch-200 border border-birch-200 text-xs font-semibold text-ink-700 transition active:scale-95"
-          >
-            Reset Tuned
-          </button>
         </div>
       </div>
+    </section>
 
-      <!-- 2. INTERACTIVE SPRUCE VISUAL STRING BED -->
+    <!-- RIGHT / LOWER COLUMN: Spruce String Bed + Collapsible Accordions -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- 1. INTERACTIVE SPRUCE VISUAL STRING BED (Internal scroll container only) -->
       <div class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm overflow-hidden flex flex-col">
-        <!-- String Bed Header & Color Legend -->
-        <div class="px-4 sm:px-5 py-3 border-b border-birch-200 flex flex-wrap items-center justify-between gap-2 bg-birch-50">
+        <div class="px-3.5 sm:px-5 py-3 border-b border-birch-200 flex flex-wrap items-center justify-between gap-2 bg-birch-50">
           <div>
             <h2 class="font-serif text-lg font-bold text-ink-900 leading-tight">Spruce String Bed</h2>
-            <p class="text-[11px] text-ink-500">Tap any string to select &amp; hear its plucked reference tone</p>
+            <p class="text-[11px] text-ink-500">Tap any string to select &amp; hear its reference tone</p>
           </div>
-          <!-- Dynamic Color Legend -->
-          <div id="string-color-legend" class="flex items-center gap-3 text-[11px] font-medium text-ink-700">
-            <!-- Populated by JS -->
+          <div class="flex items-center gap-2.5">
+            <span id="tuned-progress-text" class="font-mono text-xs font-bold text-nordic-green bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">0 / 36 tuned</span>
+            <button
+              id="reset-tuned-btn"
+              type="button"
+              class="px-2.5 min-h-[36px] rounded-lg bg-birch-100 hover:bg-birch-200 border border-birch-200 text-xs font-semibold text-ink-700 transition active:scale-95"
+            >
+              Reset
+            </button>
           </div>
         </div>
 
-        <!-- Soundboard Container -->
-        <div class="spruce-board p-3 sm:p-4 max-h-[600px] overflow-y-auto kantele-scroll">
+        <!-- Thin Tuned Progress Bar & Color Legend -->
+        <div class="px-3.5 sm:px-5 py-2 bg-birch-100/60 border-b border-birch-200 flex flex-wrap items-center justify-between gap-2">
+          <div id="string-color-legend" class="flex items-center gap-3 text-[11px] font-medium text-ink-700"></div>
+          <div class="h-1.5 w-28 sm:w-40 bg-birch-200 rounded-full overflow-hidden">
+            <div id="tuned-progress-bar" class="h-full bg-nordic-green transition-all duration-300 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Dedicated Internal Scroll Container -->
+        <div id="string-bed-scroll" class="spruce-board p-2.5 sm:p-4 max-h-[55vh] lg:max-h-[540px] overflow-y-auto kantele-scroll relative">
           <div id="string-bed-list" class="flex flex-col gap-1.5">
             <!-- Tapered horizontal strings rendered here -->
           </div>
         </div>
       </div>
 
+      <!-- 2. COLLAPSIBLE ACCORDION: 7-LEVER CONCERT MECHANISM (KONEISTO) -->
+      <details id="accordion-mechanism" class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm group">
+        <summary class="px-4 sm:px-5 min-h-[48px] cursor-pointer list-none flex items-center justify-between text-sm sm:text-base font-serif font-bold text-ink-900 select-none">
+          <span class="flex items-center gap-2">
+            <span>7-Lever Concert Mechanism (Koneisto)</span>
+            <span id="mechanism-summary-badge" class="font-sans text-[11px] font-semibold px-2 py-0.5 rounded-md bg-birch-100 text-ink-500 border border-birch-200">All ♮</span>
+          </span>
+          <svg class="w-4 h-4 text-ink-400 transition-transform group-open:rotate-180 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="px-3.5 sm:px-5 pb-4 pt-3 border-t border-birch-200/70 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs text-ink-500">Shifts all octaves of each pitch class simultaneously</span>
+            <button
+              id="mechanism-neutral-btn"
+              type="button"
+              class="px-3 min-h-[40px] rounded-xl bg-birch-100 hover:bg-birch-200 text-ink-900 border border-birch-300 text-xs font-semibold transition active:scale-95"
+            >
+              Neutral / C-duuri (Kaikki ♮)
+            </button>
+          </div>
+          <div id="mechanism-levers-grid" class="grid grid-cols-7 gap-1 sm:gap-1.5">
+            <!-- 7 pitch-class levers dynamically rendered -->
+          </div>
+        </div>
+      </details>
+
+      <!-- 3. COLLAPSIBLE ACCORDION: PRESETS, SCALE & MUSICIAN SETTINGS -->
+      <details id="accordion-settings" class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm group">
+        <summary class="px-4 sm:px-5 min-h-[48px] cursor-pointer list-none flex items-center justify-between text-sm sm:text-base font-serif font-bold text-ink-900 select-none">
+          <span>Presets, Scale &amp; Musician Settings</span>
+          <svg class="w-4 h-4 text-ink-400 transition-transform group-open:rotate-180 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="px-3.5 sm:px-5 pb-4 pt-3 border-t border-birch-200/70 flex flex-col gap-4">
+          <!-- Preset & Key Selectors -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="preset-select" class="block text-xs font-semibold text-ink-700 mb-1.5">Instrument Layout</label>
+              <select
+                id="preset-select"
+                class="w-full min-h-[42px] rounded-xl bg-birch-100 border border-birch-200 px-3 py-2 text-sm font-medium text-ink-900 focus:outline-none focus:ring-2 focus:ring-brass-400"
+              >
+                <option value="heikkila_36">Oiva Heikkilä 36-kielinen konserttikantele (H₁–h³ / B1–B6)</option>
+                <option value="36_A1">36-String Kotikantele (A1–A6 / A₁–a³)</option>
+                <option value="37_A1">37-String Kotikantele (A1–B6 / A₁–h³)</option>
+                <option value="37_C2">37-String Kotikantele (C2–D7 / C–d⁴)</option>
+                <option value="37_G1">37-String Kotikantele (G1–A6 / G₁–a³)</option>
+                <option value="32">32-String Kotikantele (G2–C7 / G–c⁴)</option>
+                <option value="39">39-String Concert Kantele (G1–C7 / G₁–c⁴)</option>
+                <option value="15">15-String Kantele (D4–D6 / d¹–d³)</option>
+                <option value="5">5-String Kantele (D4–A4 / d¹–a¹)</option>
+                <option value="custom">Custom Range (5–40 Strings)…</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="key-select" class="block text-xs font-semibold text-ink-700 mb-1.5">Key / Scale Quick-Setter</label>
+              <select
+                id="key-select"
+                class="w-full min-h-[42px] rounded-xl bg-birch-100 border border-birch-200 px-3 py-2 text-sm font-medium text-ink-900 focus:outline-none focus:ring-2 focus:ring-brass-400"
+              >
+                <option value="C_MAJ">C Major / A Minor (All ♮)</option>
+                <option value="G_MAJ">G Major / E Minor (F♯ / Fis)</option>
+                <option value="D_MAJ">D Major / B Minor (F♯, C♯)</option>
+                <option value="A_MAJ">A Major / F♯ Minor (F♯, C♯, G♯)</option>
+                <option value="E_MAJ">E Major / C♯ Minor (F♯, C♯, G♯, D♯)</option>
+                <option value="F_MAJ">F Major / D Minor (B♭ / B)</option>
+                <option value="BB_MAJ">B♭ Major / G Minor (B♭, E♭)</option>
+                <option value="EB_MAJ">E♭ Major / C Minor (B♭, E♭, A♭)</option>
+                <option value="A_HARM_MIN">A Harmonic Minor (G♯ / Gis)</option>
+                <option value="D_HARM_MIN">D Harmonic Minor (B♭, C♯)</option>
+                <option value="E_HARM_MIN">E Harmonic Minor (F♯, D♯)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom Range Configurator -->
+          <div id="custom-range-panel" class="hidden rounded-xl bg-birch-100/80 border border-birch-200 p-3 flex flex-col gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-ink-900">Custom Kantele Range</span>
+              <span id="custom-range-summary" class="font-mono text-xs font-semibold text-brass-600 bg-birch-50 px-2.5 py-0.5 rounded-md border border-birch-200">
+                37 strings · A₁–h³
+              </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <label for="custom-count-slider" class="font-medium text-ink-700">String Count</label>
+                  <span id="custom-count-val" class="font-mono font-bold text-ink-900">37</span>
+                </div>
+                <input id="custom-count-slider" type="range" min="5" max="40" step="1" value="37" class="w-full accent-brass-500 cursor-pointer h-6" />
+              </div>
+              <div>
+                <label for="custom-start-select" class="block text-xs font-medium text-ink-700 mb-1">Lowest Diatonic String (E1–D4)</label>
+                <select id="custom-start-select" class="w-full min-h-[40px] rounded-lg bg-birch-50 border border-birch-200 px-2.5 py-1.5 text-xs font-medium text-ink-900"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- A4 Calibration & Noise Gate -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-birch-200/70">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="a4-slider" class="text-xs font-semibold text-ink-700">A4 Calibration (a¹)</label>
+                <div class="flex items-center gap-1.5">
+                  <button id="a4-dec-btn" type="button" class="w-8 h-8 rounded-lg bg-birch-100 hover:bg-birch-200 border border-birch-200 text-sm font-bold text-ink-900">−</button>
+                  <span id="a4-value-label" class="font-mono text-xs font-bold text-ink-900 tabular-nums min-w-[52px] text-center">440 Hz</span>
+                  <button id="a4-inc-btn" type="button" class="w-8 h-8 rounded-lg bg-birch-100 hover:bg-birch-200 border border-birch-200 text-sm font-bold text-ink-900">+</button>
+                </div>
+              </div>
+              <input id="a4-slider" type="range" min="432" max="445" step="1" value="440" class="w-full accent-brass-500 cursor-pointer h-6" />
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="noise-gate-slider" class="text-xs font-semibold text-ink-700">RMS Noise Gate</label>
+                <span id="noise-gate-val-settings" class="font-mono text-xs font-semibold text-ink-500 tabular-nums">0.012</span>
+              </div>
+              <input id="noise-gate-slider" type="range" min="0.002" max="0.060" step="0.001" value="0.012" class="w-full accent-brass-500 cursor-pointer h-6" />
+            </div>
+          </div>
+
+          <!-- Notation, Octave & String Color Scheme -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span class="block text-xs font-semibold text-ink-700 mb-1.5">Note Naming</span>
+              <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
+                <button id="notation-fi-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
+                  Finnish (H/B)
+                </button>
+                <button id="notation-intl-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
+                  Intl (B/B♭)
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-xs font-semibold text-ink-700 mb-1.5">Octave Style</span>
+              <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
+                <button id="octave-helm-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
+                  Helmholtz (H₁)
+                </button>
+                <button id="octave-sci-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
+                  Scientific (B1)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <span class="block text-xs font-semibold text-ink-700 mb-1.5">String Color Scheme</span>
+            <div class="grid grid-cols-2 rounded-xl bg-birch-100 p-1 border border-birch-200">
+              <button id="color-koistinen-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm">
+                Koistinen (Red C, Black G)
+              </button>
+              <button id="color-classic-btn" type="button" class="min-h-[38px] px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900">
+                Classic / Harp (Red C, Blue F)
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 4. COLLAPSIBLE ACCORDION: TUNING GUIDE / VIRITYSOHJE -->
+      <details id="accordion-guide" class="bg-birch-50 rounded-2xl border border-birch-200 shadow-sm group">
+        <summary class="px-4 sm:px-5 min-h-[48px] cursor-pointer list-none flex items-center justify-between text-sm sm:text-base font-serif font-bold text-ink-900 select-none">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-brass-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+            </svg>
+            Tuning Guide / Viritysohje
+          </span>
+          <svg class="w-4 h-4 text-ink-400 transition-transform group-open:rotate-180 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="px-4 sm:px-5 pb-4 text-xs sm:text-sm text-ink-700 space-y-2.5 border-t border-birch-200/70 pt-3 leading-relaxed">
+          <p><strong class="text-ink-900">1. Base tuning at ♮ (Perusviritys C-duurissa):</strong> Always set all 7 concert kantele levers (<em>koneisto</em>) to neutral (♮) before turning tuning pins. Tap <strong>Neutral / C-duuri (Kaikki ♮)</strong> to match the tuner.</p>
+          <p><strong class="text-ink-900">2. New wound bass strings (H₁–H):</strong> Fresh bass strings stretch noticeably at first. Re-check the lowest octave frequently and make a second pass from bass to treble after the soundboard settles.</p>
+          <p><strong class="text-ink-900">3. Soft-strung vintage kanteles (Pehmeäkielinen soitin):</strong> 1960s Oiva Heikkilä concert kanteles have gentler string tension. Turn the tuning key in small 5°–10° increments, and always approach the target pitch from slightly flat (loosen slightly if sharp, then tighten clockwise / <em>kiristä</em>).</p>
+          <p><strong class="text-ink-900">4. Concert levers (Koneisto):</strong> Flip levers smoothly and avoid unnecessary extreme positions (such as H→His) when not required by the piece.</p>
+        </div>
+      </details>
+
     </section>
   </main>
 
-  <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-ink-400">
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-5 text-center text-xs text-ink-400">
     Kantele Tuner · Equal Temperament (Tasavireinen) · Web Audio YIN Pitch Detection
   </footer>
 
@@ -582,7 +549,6 @@
       const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
       const BASE_SEMITONE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
-      // Finnish/Nordic note names (uppercase for octaves <= 2, lowercase for >= 3 in Helmholtz)
       const FINNISH_SHARP = { C: 'Cis', D: 'Dis', E: 'Eis', F: 'Fis', G: 'Gis', A: 'Ais', B: 'His' };
       const FINNISH_FLAT  = { C: 'Ces', D: 'Des', E: 'Es',  F: 'Fes', G: 'Ges', A: 'As',  B: 'B'   };
       const FINNISH_NAT   = { C: 'C',   D: 'D',   E: 'E',   F: 'F',   G: 'G',   A: 'A',   B: 'H'   };
@@ -592,9 +558,9 @@
           name: 'Oiva Heikkilä 36-kielinen konserttikantele (H₁–h³)',
           startLetter: 'B', startOctave: 1, count: 36, defaultKey: 'C_MAJ'
         },
-        '36': {
-          name: '36-String Kotikantele (C2–C7)',
-          startLetter: 'C', startOctave: 2, count: 36, defaultKey: 'C_MAJ'
+        '36_A1': {
+          name: '36-String Kotikantele (A1–A6)',
+          startLetter: 'A', startOctave: 1, count: 36, defaultKey: 'C_MAJ'
         },
         '37_A1': {
           name: '37-String Kotikantele (A1–B6)',
@@ -655,17 +621,16 @@
         customStartOctave: 1,
         mechanism: { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 },
         a4Freq: 440,
-        notation: 'fi',          // 'fi' | 'intl'
-        octaveStyle: 'helm',     // 'helm' | 'sci'
-        colorScheme: 'koistinen',// 'koistinen' | 'classic'
-        mode: 'auto',            // 'auto' | 'manual'
+        notation: 'fi',
+        octaveStyle: 'helm',
+        colorScheme: 'koistinen',
+        mode: 'auto',
         noiseGate: 0.012,
         strings: [],
         selectedIndex: 0,
         micActive: false,
         loopTone: false,
         loopTimerId: null,
-        // Real-time pitch tracking state
         holdInTuneMs: 0,
         lastFrameTime: 0,
         lastValidPitchTime: 0,
@@ -673,7 +638,6 @@
         pitchHistory: [],
       };
 
-      // Web Audio state
       let audioCtx = null;
       let micStream = null;
       let analyserNode = null;
@@ -721,6 +685,7 @@
         volumeGateMarker: document.getElementById('volume-gate-marker'),
         noiseGateSlider: document.getElementById('noise-gate-slider'),
         noiseGateVal: document.getElementById('noise-gate-val'),
+        noiseGateValSettings: document.getElementById('noise-gate-val-settings'),
 
         a4Slider: document.getElementById('a4-slider'),
         a4ValueLabel: document.getElementById('a4-value-label'),
@@ -742,7 +707,7 @@
         customCountVal: document.getElementById('custom-count-val'),
         customStartSelect: document.getElementById('custom-start-select'),
 
-        mechanismPanel: document.getElementById('mechanism-panel'),
+        mechanismSummaryBadge: document.getElementById('mechanism-summary-badge'),
         mechanismNeutralBtn: document.getElementById('mechanism-neutral-btn'),
         mechanismLeversGrid: document.getElementById('mechanism-levers-grid'),
 
@@ -751,7 +716,11 @@
         resetTunedBtn: document.getElementById('reset-tuned-btn'),
 
         stringColorLegend: document.getElementById('string-color-legend'),
+        stringBedScroll: document.getElementById('string-bed-scroll'),
         stringBedList: document.getElementById('string-bed-list'),
+
+        accordionMechanism: document.getElementById('accordion-mechanism'),
+        accordionSettings: document.getElementById('accordion-settings'),
       };
 
       // =========================================================================
@@ -784,18 +753,12 @@
           return `${base}${octave}`;
         }
 
-        // Authentic Helmholtz octave notation:
-        // Oct 1: C₁..H₁, Oct 2: C..H, Oct 3: c..h, Oct 4: c¹..h¹, Oct 5: c²..h², Oct 6: c³..h³, Oct 7: c⁴..h⁴
-        if (octave <= 1) {
-          return `${base}₁`;
-        } else if (octave === 2) {
-          return base;
-        } else {
-          const lowerBase = base.toLowerCase();
-          if (octave === 3) return lowerBase;
-          const supMap = { 4: '¹', 5: '²', 6: '³', 7: '⁴', 8: '⁵' };
-          return `${lowerBase}${supMap[octave] || (octave - 3)}`;
-        }
+        if (octave <= 1) return `${base}₁`;
+        if (octave === 2) return base;
+        const lowerBase = base.toLowerCase();
+        if (octave === 3) return lowerBase;
+        const supMap = { 4: '¹', 5: '²', 6: '³', 7: '⁴', 8: '⁵' };
+        return `${lowerBase}${supMap[octave] || (octave - 3)}`;
       }
 
       function freqToNearestNoteLabel(freq) {
@@ -803,7 +766,6 @@
         const midi = Math.round(midiFloat);
         const pc = ((midi % 12) + 12) % 12;
         const octave = Math.floor(midi / 12) - 1;
-        // Map pitch class to letter + accidental
         const map = [
           ['C', 0], ['C', 1], ['D', 0], ['E', -1], ['E', 0], ['F', 0],
           ['F', 1], ['G', 0], ['G', 1], ['A', 0], ['B', -1], ['B', 0]
@@ -840,7 +802,6 @@
       function populateCustomStartOptions() {
         const prevVal = `${state.customStartLetter}${state.customStartOctave}`;
         dom.customStartSelect.innerHTML = '';
-        // E1 through D4
         let letterIdx = LETTERS.indexOf('E');
         let oct = 1;
         while (true) {
@@ -878,7 +839,6 @@
         const preset = getActivePresetConfig();
         const keySig = KEY_SIGNATURES[state.keyId] || KEY_SIGNATURES.C_MAJ;
 
-        // Sync concert mechanism to selected key signature
         LETTERS.forEach((l) => {
           state.mechanism[l] = keySig[l];
         });
@@ -956,20 +916,23 @@
 
       function renderMechanismBar() {
         dom.mechanismLeversGrid.innerHTML = '';
+        const activeMods = [];
+
         LETTERS.forEach((letter) => {
           const val = state.mechanism[letter];
           const displayLetter = (letter === 'B' && state.notation === 'fi') ? 'H' : letter;
           const accLabel = val === 1 ? '♯' : val === -1 ? '♭' : '♮';
+          if (val !== 0) activeMods.push(`${displayLetter}${accLabel}`);
           const headerClass = val !== 0 ? 'text-brass-600' : 'text-ink-900';
 
           const col = document.createElement('div');
-          col.className = 'flex flex-col items-center gap-1 rounded-lg bg-birch-50 border border-birch-200 p-1.5';
+          col.className = 'flex flex-col items-center gap-1 rounded-xl bg-birch-100/70 border border-birch-200 p-1';
           col.innerHTML = `
-            <span class="text-xs font-bold ${headerClass}">${displayLetter}<span class="text-[10px] ml-0.5">${accLabel}</span></span>
-            <div class="flex flex-col w-full gap-0.5">
-              <button type="button" data-mech-letter="${letter}" data-mech-val="1" class="py-0.5 rounded text-[11px] font-bold transition ${val === 1 ? 'bg-brass-500 text-white shadow-sm' : 'bg-birch-100 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Sharp">♯</button>
-              <button type="button" data-mech-letter="${letter}" data-mech-val="0" class="py-0.5 rounded text-[11px] font-bold transition ${val === 0 ? 'bg-ink-900 text-birch-50 shadow-sm' : 'bg-birch-100 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Natural">♮</button>
-              <button type="button" data-mech-letter="${letter}" data-mech-val="-1" class="py-0.5 rounded text-[11px] font-bold transition ${val === -1 ? 'bg-brass-500 text-white shadow-sm' : 'bg-birch-100 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Flat">♭</button>
+            <span class="text-xs font-bold ${headerClass}">${displayLetter}<span class="text-[10px]">${accLabel}</span></span>
+            <div class="flex flex-col w-full gap-1">
+              <button type="button" data-mech-letter="${letter}" data-mech-val="1" class="min-h-[34px] rounded-lg text-xs font-bold transition ${val === 1 ? 'bg-brass-500 text-white shadow-sm' : 'bg-birch-50 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Sharp">♯</button>
+              <button type="button" data-mech-letter="${letter}" data-mech-val="0" class="min-h-[34px] rounded-lg text-xs font-bold transition ${val === 0 ? 'bg-ink-900 text-birch-50 shadow-sm' : 'bg-birch-50 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Natural">♮</button>
+              <button type="button" data-mech-letter="${letter}" data-mech-val="-1" class="min-h-[34px] rounded-lg text-xs font-bold transition ${val === -1 ? 'bg-brass-500 text-white shadow-sm' : 'bg-birch-50 text-ink-500 hover:bg-birch-200'}" title="${displayLetter} Flat">♭</button>
             </div>
           `;
           col.querySelectorAll('button').forEach((btn) => {
@@ -979,10 +942,12 @@
           });
           dom.mechanismLeversGrid.appendChild(col);
         });
+
+        dom.mechanismSummaryBadge.textContent = activeMods.length ? activeMods.join(', ') : 'All ♮';
       }
 
       // =========================================================================
-      // 6. INTERACTIVE SPRUCE STRING BED RENDERING
+      // 6. INTERACTIVE SPRUCE STRING BED & INTERNAL-ONLY SCROLLING
       // =========================================================================
       function getStringVisualColor(letter) {
         if (state.colorScheme === 'koistinen') {
@@ -1011,6 +976,27 @@
         }
       }
 
+      /**
+       * Scrolls ONLY the internal #string-bed-scroll container so the active string
+       * stays comfortably visible without ever moving the browser window viewport.
+       */
+      function scrollStringBedInternally(index) {
+        const container = dom.stringBedScroll;
+        const row = dom.stringBedList.querySelector(`button[data-index="${index}"]`);
+        if (!container || !row) return;
+
+        const rowTop = row.offsetTop;
+        const rowBottom = rowTop + row.offsetHeight;
+        const viewTop = container.scrollTop;
+        const viewBottom = viewTop + container.clientHeight;
+        const pad = 16;
+
+        if (rowTop < viewTop + pad || rowBottom > viewBottom - pad) {
+          const targetTop = Math.max(0, rowTop - (container.clientHeight - row.offsetHeight) / 2);
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+      }
+
       function renderStringBed() {
         renderColorLegend();
         dom.stringBedList.innerHTML = '';
@@ -1022,19 +1008,17 @@
           const freq = getStringFreq(str);
           const colors = getStringVisualColor(str.letter);
 
-          // Tapered length: lowest bass string (#1) = 100%, highest treble string = ~36%
           const ratio = count > 1 ? idx / (count - 1) : 0;
           const widthPct = Math.round(100 - ratio * 64);
-          // Thickness: thicker for wound bass strings, thinner for treble steel
           const thicknessPx = Math.max(1.5, 4.2 - ratio * 2.7).toFixed(1);
 
           const row = document.createElement('button');
           row.type = 'button';
           row.dataset.index = String(idx);
-          row.className = `w-full text-left flex items-center gap-2.5 px-2.5 py-2 rounded-xl border transition-all ${
+          row.className = `w-full min-h-[44px] text-left flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all ${
             isSelected
               ? 'bg-birch-50/95 border-brass-500 ring-2 ring-brass-400/40 shadow-sm'
-              : 'bg-birch-50/45 hover:bg-birch-50/80 border-birch-300/60'
+              : 'bg-birch-50/50 hover:bg-birch-50/85 border-birch-300/60'
           }`;
 
           const accBadge = str.accidental === 1
@@ -1048,7 +1032,7 @@
             : '<span class="w-5 h-5 rounded-full border border-birch-300 bg-birch-50/60 shrink-0"></span>';
 
           row.innerHTML = `
-            <span class="font-mono text-[11px] font-semibold text-ink-500 w-6 text-right shrink-0 tabular-nums">${str.number}</span>
+            <span class="font-mono text-[11px] font-semibold text-ink-500 w-5 text-right shrink-0 tabular-nums">${str.number}</span>
             <span class="font-serif text-base font-bold px-2 py-0.5 rounded-md border min-w-[46px] text-center shrink-0 ${colors.badge}">
               ${noteLabel}
             </span>
@@ -1057,7 +1041,7 @@
                 class="string-wire rounded-full shadow-sm transition-all"
                 style="width: ${widthPct}%; height: ${thicknessPx}px; background-color: ${colors.line};"
               ></div>
-              <span class="w-2 h-2 rounded-full bg-brass-500 border border-ink-900/30 shrink-0 -ml-0.5" title="Tuning pin"></span>
+              <span class="w-2 h-2 rounded-full bg-brass-500 border border-ink-900/30 shrink-0 -ml-0.5"></span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               ${accBadge}
@@ -1103,23 +1087,21 @@
         dom.gaugeTargetNote.textContent = noteLabel;
         dom.gaugeTargetHz.textContent = `${freq.toFixed(2)} Hz`;
 
-        // Update per-string accidental override buttons
         const setAccBtn = (btn, active) => {
           btn.className = active
-            ? 'px-2.5 py-1 rounded-md text-xs font-bold transition bg-ink-900 text-birch-50'
-            : 'px-2.5 py-1 rounded-md text-xs font-bold transition text-ink-500 hover:text-ink-900';
+            ? 'w-8 min-h-[36px] rounded-lg text-xs font-bold transition bg-ink-900 text-birch-50'
+            : 'w-8 min-h-[36px] rounded-lg text-xs font-bold transition text-ink-500 hover:text-ink-900';
         };
         setAccBtn(dom.strAccFlat, str.accidental === -1);
         setAccBtn(dom.strAccNat, str.accidental === 0);
         setAccBtn(dom.strAccSharp, str.accidental === 1);
 
-        // Update manual tuned toggle button
         if (str.tuned) {
-          dom.toggleTunedBtn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-nordic-green bg-nordic-green text-white transition';
+          dom.toggleTunedBtn.className = 'px-2.5 min-h-[40px] rounded-xl text-xs font-semibold border border-nordic-green bg-nordic-green text-white transition';
           dom.toggleTunedBtn.textContent = '✓ Tuned';
         } else {
-          dom.toggleTunedBtn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-birch-200 bg-birch-50 hover:bg-birch-200 text-ink-700 transition';
-          dom.toggleTunedBtn.textContent = 'Mark Tuned';
+          dom.toggleTunedBtn.className = 'px-2.5 min-h-[40px] rounded-xl text-xs font-semibold border border-birch-200 bg-birch-100 hover:bg-birch-200 text-ink-700 transition';
+          dom.toggleTunedBtn.textContent = '✓';
         }
       }
 
@@ -1134,7 +1116,7 @@
       // =========================================================================
       // 7. PLUCKED KANTELE REFERENCE TONE SYNTHESIZER (WEB AUDIO)
       // =========================================================================
-      function ensureAudioContext() {
+      function ensureAudioContextSync() {
         if (!audioCtx) {
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           audioCtx = new AudioContextClass();
@@ -1147,17 +1129,15 @@
 
       function playKanteleTone(freq) {
         try {
-          const ctx = ensureAudioContext();
+          const ctx = ensureAudioContextSync();
           const now = ctx.currentTime;
           const duration = freq < 130 ? 3.2 : freq < 400 ? 2.6 : 2.0;
 
-          // Master envelope with natural plucked kantele shimmer
           const masterGain = ctx.createGain();
           masterGain.gain.setValueAtTime(0.0001, now);
           masterGain.gain.linearRampToValueAtTime(0.32, now + 0.006);
           masterGain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
 
-          // Warm spruce soundboard lowpass filter
           const bodyFilter = ctx.createBiquadFilter();
           bodyFilter.type = 'lowpass';
           bodyFilter.frequency.setValueAtTime(Math.min(9000, freq * 12), now);
@@ -1167,7 +1147,6 @@
           bodyFilter.connect(masterGain);
           masterGain.connect(ctx.destination);
 
-          // Additive steel/wound kantele partials (slight inharmonicity & fast upper harmonic decay)
           const partials = [
             { mult: 1.0,  amp: 1.0,  decay: duration },
             { mult: 2.0,  amp: 0.45, decay: duration * 0.72 },
@@ -1191,7 +1170,6 @@
             osc.stop(now + p.decay + 0.05);
           });
 
-          // Subtle fingernail pluck transient burst
           const burstLen = Math.floor(ctx.sampleRate * 0.015);
           const noiseBuf = ctx.createBuffer(1, burstLen, ctx.sampleRate);
           const data = noiseBuf.getChannelData(0);
@@ -1214,7 +1192,7 @@
       function toggleLoopTone() {
         state.loopTone = !state.loopTone;
         if (state.loopTone) {
-          dom.loopToneLabel.textContent = 'Loop Tone: On';
+          dom.loopToneLabel.textContent = 'Loop: On';
           dom.loopToneBtn.classList.add('bg-brass-500', 'text-white', 'border-brass-600');
           dom.loopToneBtn.classList.remove('bg-birch-100', 'text-ink-900', 'border-birch-200');
           const playNow = () => {
@@ -1224,7 +1202,7 @@
           playNow();
           state.loopTimerId = setInterval(playNow, 1800);
         } else {
-          dom.loopToneLabel.textContent = 'Loop Tone: Off';
+          dom.loopToneLabel.textContent = 'Loop';
           dom.loopToneBtn.classList.remove('bg-brass-500', 'text-white', 'border-brass-600');
           dom.loopToneBtn.classList.add('bg-birch-100', 'text-ink-900', 'border-birch-200');
           if (state.loopTimerId) {
@@ -1235,13 +1213,12 @@
       }
 
       // =========================================================================
-      // 8. YIN PITCH DETECTION ENGINE (E1 = 41 Hz to D7 = 2350 Hz)
+      // 8. YIN PITCH DETECTION ENGINE (E1 ~38 Hz to D7 ~2450 Hz)
       // =========================================================================
       function detectPitchYIN(buffer, sampleRate) {
         const bufLen = buffer.length;
         const halfLen = Math.floor(bufLen / 2);
 
-        // Compute RMS volume
         let sumSq = 0;
         for (let i = 0; i < bufLen; i++) {
           sumSq += buffer[i] * buffer[i];
@@ -1251,14 +1228,12 @@
           return { freq: null, rms };
         }
 
-        // Bounds for E1 (~40 Hz) to D7 (~2400 Hz)
         const tauMin = Math.max(2, Math.floor(sampleRate / 2450));
-        const tauMax = Math.min(halfLen - 1, Math.ceil(sampleRate / 39));
+        const tauMax = Math.min(halfLen - 1, Math.ceil(sampleRate / 38));
 
         const diff = new Float32Array(tauMax + 1);
         const cmndf = new Float32Array(tauMax + 1);
 
-        // Step 1: Difference function
         for (let tau = tauMin; tau <= tauMax; tau++) {
           let sum = 0;
           for (let i = 0; i < halfLen; i++) {
@@ -1268,7 +1243,6 @@
           diff[tau] = sum;
         }
 
-        // Step 2: Cumulative mean normalized difference function (CMNDF)
         let runningSum = 0;
         cmndf[0] = 1;
         for (let tau = 1; tau <= tauMax; tau++) {
@@ -1276,7 +1250,6 @@
           cmndf[tau] = runningSum > 0 ? (diff[tau] * tau) / runningSum : 1;
         }
 
-        // Step 3: Absolute threshold search
         const threshold = 0.14;
         let tauEstimate = -1;
         for (let tau = tauMin; tau <= tauMax; tau++) {
@@ -1289,7 +1262,6 @@
           }
         }
 
-        // Fallback: accept best local minimum if reasonably periodic
         if (tauEstimate === -1) {
           let minVal = 1.0;
           let minTau = -1;
@@ -1306,7 +1278,6 @@
           }
         }
 
-        // Step 4: Parabolic interpolation for sub-sample precision
         let betterTau = tauEstimate;
         if (tauEstimate > tauMin && tauEstimate < tauMax) {
           const s0 = cmndf[tauEstimate - 1];
@@ -1319,7 +1290,7 @@
         }
 
         const freq = sampleRate / betterTau;
-        if (freq < 39 || freq > 2450 || !Number.isFinite(freq)) {
+        if (freq < 38 || freq > 2450 || !Number.isFinite(freq)) {
           return { freq: null, rms };
         }
         return { freq, rms };
@@ -1346,16 +1317,28 @@
       }
 
       // =========================================================================
-      // 9. REAL-TIME MICROPHONE LOOP & GAUGE UPDATES
+      // 9. iOS SAFARI-SAFE MICROPHONE STARTUP & REAL-TIME AUDIO LOOP
       // =========================================================================
       async function startMicrophone() {
         hideBanner();
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          showBanner('Microphone access is not supported in this browser or context (HTTPS required).');
+
+        // CRITICAL FOR iOS SAFARI:
+        // Create & resume AudioContext synchronously inside the user tap gesture
+        // BEFORE awaiting navigator.mediaDevices.getUserMedia().
+        let ctx;
+        try {
+          ctx = ensureAudioContextSync();
+        } catch (err) {
+          showBanner(`Web Audio initialization failed: ${err.message}`);
           return;
         }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showBanner('Microphone access requires HTTPS in a top-level browser tab (not a sandboxed embed or local file://).');
+          return;
+        }
+
         try {
-          const ctx = ensureAudioContext();
           micStream = await navigator.mediaDevices.getUserMedia({
             audio: {
               echoCancellation: false,
@@ -1363,6 +1346,12 @@
               autoGainControl: false,
             }
           });
+
+          // Resume again if iOS Safari suspended the context while the permission dialog was open
+          if (ctx.state === 'suspended') {
+            await ctx.resume();
+          }
+
           micSourceNode = ctx.createMediaStreamSource(micStream);
           analyserNode = ctx.createAnalyser();
           analyserNode.fftSize = 4096;
@@ -1411,29 +1400,29 @@
 
       function updateMicUI() {
         if (state.micActive) {
-          dom.micBtnLabel.textContent = 'Stop Microphone';
-          dom.micToggleBtn.className = 'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-nordic-coral hover:bg-red-700 text-white text-sm font-semibold shadow-sm transition active:scale-[0.98]';
+          dom.micBtnLabel.textContent = 'Stop Mic';
+          dom.micToggleBtn.className = 'inline-flex items-center justify-center gap-1.5 px-3.5 min-h-[40px] rounded-xl bg-nordic-coral hover:bg-red-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition active:scale-[0.98]';
           dom.micStatusDot.className = 'w-2 h-2 rounded-full bg-nordic-green animate-pulse';
           dom.micStatusText.textContent = 'Listening';
         } else {
-          dom.micBtnLabel.textContent = 'Start Microphone';
-          dom.micToggleBtn.className = 'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ink-900 hover:bg-ink-700 text-birch-50 text-sm font-semibold shadow-sm transition active:scale-[0.98]';
+          dom.micBtnLabel.textContent = 'Start Mic';
+          dom.micToggleBtn.className = 'inline-flex items-center justify-center gap-1.5 px-3.5 min-h-[40px] rounded-xl bg-ink-900 hover:bg-ink-700 text-birch-50 text-xs sm:text-sm font-semibold shadow-sm transition active:scale-[0.98]';
           dom.micStatusDot.className = 'w-2 h-2 rounded-full bg-ink-400';
           dom.micStatusText.textContent = 'Mic Off';
         }
       }
 
       function resetGaugeIdle() {
-        dom.gaugeNeedle.setAttribute('transform', 'rotate(0 150 155)');
+        dom.gaugeNeedle.setAttribute('transform', 'rotate(0 150 152)');
         dom.gaugeNeedleLine.setAttribute('stroke', '#1F1B16');
         dom.gaugeNeedleTip.setAttribute('fill', '#1F1B16');
         dom.gaugeDetectedNote.textContent = '—';
-        dom.gaugeDetectedNote.className = 'font-serif text-4xl sm:text-5xl font-bold text-ink-400 leading-tight';
+        dom.gaugeDetectedNote.className = 'font-serif text-3xl sm:text-4xl font-bold text-ink-400 leading-none';
         dom.gaugeDetectedHz.textContent = '— Hz';
         dom.gaugeCentsReadout.textContent = '— ¢';
-        dom.gaugeCentsReadout.className = 'mt-2 font-mono text-lg font-bold tabular-nums text-ink-400';
-        dom.tuningStatusPill.className = 'mt-2.5 w-full max-w-xs px-4 py-2 rounded-xl text-sm font-semibold transition-all border bg-birch-100 text-ink-500 border-birch-200';
-        dom.tuningStatusPill.textContent = state.micActive ? 'Listening… pluck a string' : 'Pluck a string or press Start Mic';
+        dom.gaugeCentsReadout.className = 'font-mono text-lg sm:text-xl font-bold tabular-nums text-ink-400 leading-tight';
+        dom.tuningStatusPill.className = 'mt-2 w-full px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border bg-birch-100 text-ink-500 border-birch-200';
+        dom.tuningStatusPill.textContent = state.micActive ? 'Listening… pluck a string' : 'Pluck a string or tap Start Mic';
       }
 
       function audioLoop(now) {
@@ -1444,14 +1433,12 @@
         analyserNode.getFloatTimeDomainData(timeDomainBuf);
         const { freq, rms } = detectPitchYIN(timeDomainBuf, audioCtx.sampleRate);
 
-        // Update input volume meter (scale 0..0.08 RMS to 0..100%)
         const meterPct = Math.min(100, (rms / 0.06) * 100);
         dom.volumeMeterFill.style.width = `${meterPct.toFixed(1)}%`;
 
         if (freq !== null) {
           state.lastValidPitchTime = now;
 
-          // Reset smoothing buffer if pitch jumped abruptly (new string plucked)
           if (state.smoothedFreq !== null) {
             const jumpCents = Math.abs(1200 * Math.log2(freq / state.smoothedFreq));
             if (jumpCents > 85) {
@@ -1465,14 +1452,13 @@
           if (state.pitchHistory.length > 5) state.pitchHistory.shift();
           const medFreq = medianFilter(state.pitchHistory);
 
-          // EMA smoothing
           state.smoothedFreq = state.smoothedFreq === null
             ? medFreq
             : state.smoothedFreq * 0.72 + medFreq * 0.28;
 
           const stableFreq = state.smoothedFreq;
 
-          // Auto-Match nearest string if enabled
+          // Auto-Match: scroll ONLY the internal string bed container, never the page window
           if (state.mode === 'auto') {
             const nearestIdx = findNearestStringIndex(stableFreq);
             if (nearestIdx !== state.selectedIndex) {
@@ -1480,9 +1466,7 @@
               state.holdInTuneMs = 0;
               renderStringBed();
               updateActiveStringUI();
-              // Gently scroll active string into view inside the string bed
-              const row = dom.stringBedList.querySelector(`button[data-index="${nearestIdx}"]`);
-              if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              scrollStringBedInternally(nearestIdx);
             }
           }
 
@@ -1490,24 +1474,21 @@
           const targetHz = getStringFreq(targetStr);
           const cents = 1200 * Math.log2(stableFreq / targetHz);
 
-          // Clamp needle angle to [-50, +50] cents -> [-90, +90] degrees
           const clampedCents = Math.max(-50, Math.min(50, cents));
           const angleDeg = (clampedCents / 50) * 90;
-          dom.gaugeNeedle.setAttribute('transform', `rotate(${angleDeg.toFixed(1)} 150 155)`);
+          dom.gaugeNeedle.setAttribute('transform', `rotate(${angleDeg.toFixed(1)} 150 152)`);
 
-          // Update numeric readouts
           dom.gaugeDetectedNote.textContent = freqToNearestNoteLabel(stableFreq);
-          dom.gaugeDetectedNote.className = 'font-serif text-4xl sm:text-5xl font-bold text-ink-900 leading-tight';
+          dom.gaugeDetectedNote.className = 'font-serif text-3xl sm:text-4xl font-bold text-ink-900 leading-none';
           dom.gaugeDetectedHz.textContent = `${stableFreq.toFixed(2)} Hz`;
           const sign = cents >= 0 ? '+' : '';
           dom.gaugeCentsReadout.textContent = `${sign}${cents.toFixed(1)} ¢`;
 
-          // Evaluate tuning accuracy (±3 cents sweet spot)
           if (Math.abs(cents) <= 3.0) {
             dom.gaugeNeedleLine.setAttribute('stroke', '#2A7B50');
             dom.gaugeNeedleTip.setAttribute('fill', '#2A7B50');
-            dom.gaugeCentsReadout.className = 'mt-2 font-mono text-lg font-bold tabular-nums text-nordic-green';
-            dom.tuningStatusPill.className = 'mt-2.5 w-full max-w-xs px-4 py-2 rounded-xl text-sm font-semibold transition-all border bg-emerald-50 text-nordic-green border-emerald-300';
+            dom.gaugeCentsReadout.className = 'font-mono text-lg sm:text-xl font-bold tabular-nums text-nordic-green leading-tight';
+            dom.tuningStatusPill.className = 'mt-2 w-full px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border bg-emerald-50 text-nordic-green border-emerald-300';
             dom.tuningStatusPill.textContent = 'In Tune / Vireessä ✓';
 
             state.holdInTuneMs = Math.min(1200, state.holdInTuneMs + dt);
@@ -1520,8 +1501,8 @@
           } else if (cents < -3.0) {
             dom.gaugeNeedleLine.setAttribute('stroke', '#C97316');
             dom.gaugeNeedleTip.setAttribute('fill', '#C97316');
-            dom.gaugeCentsReadout.className = 'mt-2 font-mono text-lg font-bold tabular-nums text-nordic-amber';
-            dom.tuningStatusPill.className = 'mt-2.5 w-full max-w-xs px-4 py-2 rounded-xl text-sm font-semibold transition-all border bg-amber-50 text-nordic-amber border-amber-300';
+            dom.gaugeCentsReadout.className = 'font-mono text-lg sm:text-xl font-bold tabular-nums text-nordic-amber leading-tight';
+            dom.tuningStatusPill.className = 'mt-2 w-full px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border bg-amber-50 text-nordic-amber border-amber-300';
             dom.tuningStatusPill.textContent = cents < -50
               ? 'Way Flat · Tighten / Kiristä ↻'
               : 'Flat · Tighten / Kiristä ↻';
@@ -1529,8 +1510,8 @@
           } else {
             dom.gaugeNeedleLine.setAttribute('stroke', '#C54336');
             dom.gaugeNeedleTip.setAttribute('fill', '#C54336');
-            dom.gaugeCentsReadout.className = 'mt-2 font-mono text-lg font-bold tabular-nums text-nordic-coral';
-            dom.tuningStatusPill.className = 'mt-2.5 w-full max-w-xs px-4 py-2 rounded-xl text-sm font-semibold transition-all border bg-red-50 text-nordic-coral border-red-300';
+            dom.gaugeCentsReadout.className = 'font-mono text-lg sm:text-xl font-bold tabular-nums text-nordic-coral leading-tight';
+            dom.tuningStatusPill.className = 'mt-2 w-full px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border bg-red-50 text-nordic-coral border-red-300';
             dom.tuningStatusPill.textContent = cents > 50
               ? 'Way Sharp · Loosen / Löysää ↺'
               : 'Sharp · Loosen / Löysää ↺';
@@ -1539,7 +1520,6 @@
 
           dom.holdProgressBar.style.width = `${Math.round((state.holdInTuneMs / 1200) * 100)}%`;
         } else {
-          // Decay hold bar and return gauge to idle after 1.1s of silence
           state.holdInTuneMs = Math.max(0, state.holdInTuneMs - dt * 2);
           dom.holdProgressBar.style.width = `${Math.round((state.holdInTuneMs / 1200) * 100)}%`;
           if (now - state.lastValidPitchTime > 1100) {
@@ -1556,8 +1536,8 @@
       // 10. SETTINGS & UI TOGGLE HELPERS
       // =========================================================================
       function setSegmentedActive(activeBtn, inactiveBtn) {
-        activeBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
-        inactiveBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
+        activeBtn.className = 'min-h-[38px] px-2 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
+        inactiveBtn.className = 'min-h-[38px] px-2 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
       }
 
       function updateSettingsUI() {
@@ -1574,14 +1554,15 @@
         else setSegmentedActive(dom.colorClassicBtn, dom.colorKoistinenBtn);
 
         if (state.mode === 'auto') {
-          dom.modeAutoBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
-          dom.modeManualBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
+          dom.modeAutoBtn.className = 'px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
+          dom.modeManualBtn.className = 'px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
         } else {
-          dom.modeManualBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
-          dom.modeAutoBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
+          dom.modeManualBtn.className = 'px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition bg-birch-50 text-ink-900 shadow-sm';
+          dom.modeAutoBtn.className = 'px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition text-ink-500 hover:text-ink-900';
         }
 
-        dom.noiseGateVal.textContent = `Gate: ${state.noiseGate.toFixed(3)}`;
+        dom.noiseGateVal.textContent = state.noiseGate.toFixed(3);
+        dom.noiseGateValSettings.textContent = state.noiseGate.toFixed(3);
         const gatePct = Math.min(100, (state.noiseGate / 0.06) * 100);
         dom.volumeGateMarker.style.left = `${gatePct.toFixed(1)}%`;
       }
@@ -1602,13 +1583,11 @@
       function bindEvents() {
         dom.alertBannerClose.addEventListener('click', hideBanner);
 
-        // Mic toggle
         dom.micToggleBtn.addEventListener('click', () => {
           if (state.micActive) stopMicrophone();
           else startMicrophone();
         });
 
-        // Mode toggle
         dom.modeAutoBtn.addEventListener('click', () => {
           state.mode = 'auto';
           updateSettingsUI();
@@ -1618,14 +1597,12 @@
           updateSettingsUI();
         });
 
-        // Play & Loop reference tone
         dom.playToneBtn.addEventListener('click', () => {
           const str = state.strings[state.selectedIndex];
           if (str) playKanteleTone(getStringFreq(str));
         });
         dom.loopToneBtn.addEventListener('click', toggleLoopTone);
 
-        // Per-string accidental override
         const setSelectedStringAcc = (acc) => {
           const str = state.strings[state.selectedIndex];
           if (!str) return;
@@ -1637,7 +1614,6 @@
         dom.strAccNat.addEventListener('click', () => setSelectedStringAcc(0));
         dom.strAccSharp.addEventListener('click', () => setSelectedStringAcc(1));
 
-        // Manual tuned toggle for selected string
         dom.toggleTunedBtn.addEventListener('click', () => {
           const str = state.strings[state.selectedIndex];
           if (!str) return;
@@ -1647,13 +1623,11 @@
           updateProgressUI();
         });
 
-        // Noise gate slider
         dom.noiseGateSlider.addEventListener('input', (e) => {
           state.noiseGate = parseFloat(e.target.value);
           updateSettingsUI();
         });
 
-        // A4 Calibration
         const setA4 = (val) => {
           state.a4Freq = Math.max(432, Math.min(445, val));
           updateSettingsUI();
@@ -1664,7 +1638,6 @@
         dom.a4DecBtn.addEventListener('click', () => setA4(state.a4Freq - 1));
         dom.a4IncBtn.addEventListener('click', () => setA4(state.a4Freq + 1));
 
-        // Notation, Octave, Color Scheme toggles
         dom.notationFiBtn.addEventListener('click', () => { state.notation = 'fi'; refreshAllViews(); });
         dom.notationIntlBtn.addEventListener('click', () => { state.notation = 'intl'; refreshAllViews(); });
         dom.octaveHelmBtn.addEventListener('click', () => { state.octaveStyle = 'helm'; refreshAllViews(); });
@@ -1672,7 +1645,6 @@
         dom.colorKoistinenBtn.addEventListener('click', () => { state.colorScheme = 'koistinen'; refreshAllViews(); });
         dom.colorClassicBtn.addEventListener('click', () => { state.colorScheme = 'classic'; refreshAllViews(); });
 
-        // Preset & Key selectors
         dom.presetSelect.addEventListener('change', (e) => {
           state.presetId = e.target.value;
           const preset = getActivePresetConfig();
@@ -1687,7 +1659,6 @@
           applyKeySignature(e.target.value);
         });
 
-        // Custom range controls
         dom.customCountSlider.addEventListener('input', (e) => {
           state.customCount = Number(e.target.value);
           buildStringsForPreset();
@@ -1699,10 +1670,8 @@
           buildStringsForPreset();
         });
 
-        // Concert mechanism neutral reset
         dom.mechanismNeutralBtn.addEventListener('click', resetMechanismNeutral);
 
-        // Reset tuned progress
         dom.resetTunedBtn.addEventListener('click', () => {
           state.strings.forEach((s) => { s.tuned = false; });
           state.holdInTuneMs = 0;
@@ -1717,6 +1686,11 @@
       // 12. INITIALIZATION
       // =========================================================================
       function init() {
+        // Keep mechanism & settings open by default on desktop, collapsed on mobile
+        if (window.innerWidth >= 1024) {
+          dom.accordionMechanism.open = true;
+          dom.accordionSettings.open = true;
+        }
         dom.presetSelect.value = state.presetId;
         dom.keySelect.value = state.keyId;
         bindEvents();
